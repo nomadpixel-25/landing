@@ -12,7 +12,59 @@
     <header class="bg-primary text-white text-center py-3">
         <h1>Walk Loop</h1>
     </header>
+    <div class="container mt-5"></div>
+        <div id="map" style="height: 500px;"></div>
+    </div>
+    <script>
+        let map;
+        let startPointMarker;
+        let endPointMarker;
 
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: -34.397, lng: 150.644 },
+                zoom: 8
+            });
+
+            map.addListener('click', function(event) {
+                placeMarker(event.latLng);
+            });
+
+            const input = document.getElementById('startPoint');
+            const autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.bindTo('bounds', map);
+
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    return;
+                }
+
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(17);
+                }
+
+                placeMarker(place.geometry.location);
+            });
+        }
+
+        function placeMarker(location) {
+            if (!startPointMarker) {
+                startPointMarker = new google.maps.Marker({
+                    position: location,
+                    map: map,
+                    draggable: true
+                });
+            } else {
+                startPointMarker.setPosition(location);
+            }
+
+            map.setCenter(location);
+        }
+    </script>
     <div class="container mt-5">
         <form id="walkForm">
             <div class="form-group">
