@@ -30,7 +30,7 @@
             <button type="submit" class="btn btn-primary">Generate Route</button>
         </form>
     </div>
-    <div id="map" style="height: 200px; width: 80%;"></div>
+    <div id="map" style="height: 300px; width: 80%;"></div>
     <script>
         let map, startMarker, endMarker, directionsService, directionsRenderer;
 
@@ -68,23 +68,23 @@
                 });
             }
 
-            // const autocompleteStart = new google.maps.places.Autocomplete(document.getElementById('startPoint'));
-            // const autocompleteEnd = new google.maps.places.Autocomplete(document.getElementById('endPoint'));
+            const autocompleteStart = new google.maps.places.Autocomplete(document.getElementById('startPoint'));
+            const autocompleteEnd = new google.maps.places.Autocomplete(document.getElementById('endPoint'));
 
-            // autocompleteStart.addListener('place_changed', () => {
-            //     const place = autocompleteStart.getPlace();
-            //     if (place.geometry) {
-            //         startMarker.setPosition(place.geometry.location);
-            //         map.setCenter(place.geometry.location);
-            //     }
-            // });
+            autocompleteStart.addListener('place_changed', () => {
+                const place = autocompleteStart.getPlace();
+                if (place.geometry) {
+                    startMarker.setPosition(place.geometry.location);
+                    map.setCenter(place.geometry.location);
+                }
+            });
 
-            // autocompleteEnd.addListener('place_changed', () => {
-            //     const place = autocompleteEnd.getPlace();
-            //     if (place.geometry) {
-            //         endMarker.setPosition(place.geometry.location);
-            //     }
-            // });
+            autocompleteEnd.addListener('place_changed', () => {
+                const place = autocompleteEnd.getPlace();
+                if (place.geometry) {
+                    endMarker.setPosition(place.geometry.location);
+                }
+            });
 
             document.getElementById('walkForm').addEventListener('submit', event => {
                 event.preventDefault();
