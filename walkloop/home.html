@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walk Loop</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <header class="bg-primary text-white text-center py-3">
+        <h1>Walk Loop</h1>
+    </header>
+
+    <div class="container mt-5">
+        <form id="walkForm">
+            <div class="form-group">
+                <label for="startPoint">Start Point</label>
+                <input type="text" class="form-control" id="startPoint" placeholder="Enter starting point">
+            </div>
+            <div class="form-group">
+                <label for="endPoint">End Point</label>
+                <input type="text" class="form-control" id="endPoint" placeholder="Enter ending point (optional)">
+            </div>
+            <div class="form-group">
+                <label for="duration">Desired Duration (minutes)</label>
+                <input type="number" class="form-control" id="duration" placeholder="Enter duration in minutes">
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Route</button>
+        </form>
+    </div>
+
+    <footer class="bg-primary text-white text-center py-3 mt-5">
+        <p>&copy; 2023 Walk Loop</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('walkForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const startPoint = document.getElementById('startPoint').value;
+            const endPoint = document.getElementById('endPoint').value;
+            const duration = document.getElementById('duration').value;
+            const walkingSpeed = 5; // km/h
+            const distance = (duration / 60) * walkingSpeed;
+
+            // Use Directions API (Google or Mapbox) to generate route
+            // Example for Google Maps API:
+            // const directionsService = new google.maps.DirectionsService();
+            // directionsService.route({
+            //     origin: startPoint,
+            //     destination: endPoint || startPoint,
+            //     travelMode: 'WALKING',
+            //     waypoints: [{ location: startPoint, stopover: true }],
+            //     optimizeWaypoints: true
+            // }, function(response, status) {
+            //     if (status === 'OK') {
+            //         // Handle the response
+            //     } else {
+            //         // Handle the error
+            //     }
+            // });
+
+            // Note: You need to include the Google Maps or Mapbox API script and handle the response accordingly.
+        });
+    </script>
+</body>
+</html></html>
