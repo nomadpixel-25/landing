@@ -12,77 +12,84 @@
     <header class="bg-primary text-white text-center py-3">
         <h1>Walk Loop</h1>
     </header>
-    <div class="container mt-5"></div>
-        <div id="map" style="height: 500px;"></div>
-    </div>
+    <div id="map" style="height: 500px; width: 100%;"></div>
     <script>
-        let map;
-        let startPointMarker;
-        let endPointMarker;
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-            const pos = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-            };
-            map.setCenter(pos);
-            }, function() {
-            handleLocationError(true, map.getCenter());
-            });
-        } else {
-            // Browser doesn't support Geolocation
-            handleLocationError(false, map.getCenter());
-        }
+        let map, startMarker, endMarker, directionsService, directionsRenderer;
 
-        function handleLocationError(browserHasGeolocation, pos) {
-            console.log(browserHasGeolocation ? 
-            'Error: The Geolocation service failed.' : 
-            'Error: Your browser doesn\'t support geolocation.');
-            map.setCenter(pos);
-        }
         function initMap() {
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer();
+            
             map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: -34.397, lng: 150.644 },
-                zoom: 8
+                zoom: 14,
+                center: { lat: -34.397, lng: 150.644 }
             });
+            directionsRenderer.setMap(map);
 
-            map.addListener('click', function(event) {
-                placeMarker(event.latLng);
-            });
-
-            const input = document.getElementById('startPoint');
-            const autocomplete = new google.maps.places.Autocomplete(input);
-            autocomplete.bindTo('bounds', map);
-
-            autocomplete.addListener('place_changed', function() {
-                const place = autocomplete.getPlace();
-                if (!place.geometry) {
-                    return;
-                }
-
-                if (place.geometry.viewport) {
-                    map.fitBounds(place.geometry.viewport);
-                } else {
-                    map.setCenter(place.geometry.location);
-                    map.setZoom(17);
-                }
-
-                placeMarker(place.geometry.location);
-            });
-        }
-
-        function placeMarker(location) {
-            if (!startPointMarker) {
-                startPointMarker = new google.maps.Marker({
-                    position: location,
-                    map: map,
-                    draggable: true
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    map.setCenter(pos);
+                    startMarker = new google.maps.Marker({
+                        position: pos,
+                        map: map,
+                        draggable: true,
+                        title: "Start Point"
+                    });
+                    endMarker = new google.maps.Marker({
+                        position: pos,
+                        map: map,
+                        draggable: true,
+                        title: "End Point"
+                    });
+                    document.getElementById('startPoint').value = `${pos.lat}, ${pos.lng}`;
+                    document.getElementById('endPoint').value = `${pos.lat}, ${pos.lng}`;
                 });
-            } else {
-                startPointMarker.setPosition(location);
             }
 
-            map.setCenter(location);
+            const autocompleteStart = new google.maps.places.Autocomplete(document.getElementById('startPoint'));
+            const autocompleteEnd = new google.maps.places.Autocomplete(document.getElementById('endPoint'));
+
+            autocompleteStart.addListener('place_changed', () => {
+                const place = autocompleteStart.getPlace();
+                if (place.geometry) {
+                    startMarker.setPosition(place.geometry.location);
+                    map.setCenter(place.geometry.location);
+                }
+            });
+
+            autocompleteEnd.addListener('place_changed', () => {
+                const place = autocompleteEnd.getPlace();
+                if (place.geometry) {
+                    endMarker.setPosition(place.geometry.location);
+                }
+            });
+
+            document.getElementById('walkForm').addEventListener('submit', event => {
+                event.preventDefault();
+                calculateAndDisplayRoute();
+            });
+        }
+
+        function calculateAndDisplayRoute() {
+            const start = startMarker.getPosition();
+            const end = endMarker.getPosition();
+            const duration = parseInt(document.getElementById('duration').value);
+
+            directionsService.route({
+                origin: start,
+                destination: end,
+                travelMode: google.maps.TravelMode.WALKING
+            }, (response, status) => {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(response);
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
         }
     </script>
     <div class="container mt-5">
@@ -102,12 +109,10 @@
             <button type="submit" class="btn btn-primary">Generate Route</button>
         </form>
     </div>
-    <div id="map" class="container mt-5" style="height: 500px;"></div>
+    <!-- fetch latest commit time -->
     <div class="container mt-5">
         <h2>Latest Commit Time</h2>
         <p id="commitTime">Fetching...</p>
-    </div>
-    <!-- fetch latest commit time -->
     <script>
         async function fetchLatestCommitTime() {
             try {
@@ -131,14 +136,7 @@
 
         fetchLatestCommitTime();
     </script>
-    <script>
-        window.initMap = function() {
-            const map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: -34.397, lng: 150.644 },
-                zoom: 8
-            });
-        }
-    </script>
+
     
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCec2M2PampMVbG14FthTZUcYPHZItmv5c&callback=initMap" loading="lazy"></script>
 
@@ -149,34 +147,6 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-        document.getElementById('walkForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const startPoint = document.getElementById('startPoint').value;
-            const endPoint = document.getElementById('endPoint').value;
-            const duration = document.getElementById('duration').value;
-            const walkingSpeed = 5; // km/h
-            const distance = (duration / 60) * walkingSpeed;
-
-            // Use Directions API (Google or Mapbox) to generate route
-            // Example for Google Maps API:
-            // const directionsService = new google.maps.DirectionsService();
-            // directionsService.route({
-            //     origin: startPoint,
-            //     destination: endPoint || startPoint,
-            //     travelMode: 'WALKING',
-            //     waypoints: [{ location: startPoint, stopover: true }],
-            //     optimizeWaypoints: true
-            // }, function(response, status) {
-            //     if (status === 'OK') {
-            //         // Handle the response
-            //     } else {
-            //         // Handle the error
-            //     }
-            // });
-
-            // Note: You need to include the Google Maps or Mapbox API script and handle the response accordingly.
-        });
-    </script>
+    
 </body>
 </html></html>
