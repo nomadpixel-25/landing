@@ -30,7 +30,7 @@
             <button type="submit" class="btn btn-primary">Generate Route</button>
         </form>
     </div>
-    <div id="map" style="height: 500px; width: 100%;"></div>
+    <div id="map" style="height: 200px; width: 80%;"></div>
     <script>
         let map, startMarker, endMarker, directionsService, directionsRenderer;
 
@@ -68,23 +68,23 @@
                 });
             }
 
-            const autocompleteStart = new google.maps.places.Autocomplete(document.getElementById('startPoint'));
-            const autocompleteEnd = new google.maps.places.Autocomplete(document.getElementById('endPoint'));
+            // const autocompleteStart = new google.maps.places.Autocomplete(document.getElementById('startPoint'));
+            // const autocompleteEnd = new google.maps.places.Autocomplete(document.getElementById('endPoint'));
 
-            autocompleteStart.addListener('place_changed', () => {
-                const place = autocompleteStart.getPlace();
-                if (place.geometry) {
-                    startMarker.setPosition(place.geometry.location);
-                    map.setCenter(place.geometry.location);
-                }
-            });
+            // autocompleteStart.addListener('place_changed', () => {
+            //     const place = autocompleteStart.getPlace();
+            //     if (place.geometry) {
+            //         startMarker.setPosition(place.geometry.location);
+            //         map.setCenter(place.geometry.location);
+            //     }
+            // });
 
-            autocompleteEnd.addListener('place_changed', () => {
-                const place = autocompleteEnd.getPlace();
-                if (place.geometry) {
-                    endMarker.setPosition(place.geometry.location);
-                }
-            });
+            // autocompleteEnd.addListener('place_changed', () => {
+            //     const place = autocompleteEnd.getPlace();
+            //     if (place.geometry) {
+            //         endMarker.setPosition(place.geometry.location);
+            //     }
+            // });
 
             document.getElementById('walkForm').addEventListener('submit', event => {
                 event.preventDefault();
@@ -96,6 +96,9 @@
             const start = startMarker.getPosition();
             const end = endMarker.getPosition();
             const duration = parseInt(document.getElementById('duration').value);
+            const waypoints = [];
+            const maxWalkingSpeed = 5; // km/h
+            const maxWalkingDistance = (duration / 60) * maxWalkingSpeed * 1000; // convert to meters
 
             directionsService.route({
                 origin: start,
@@ -103,11 +106,48 @@
                 travelMode: google.maps.TravelMode.WALKING
             }, (response, status) => {
                 if (status === 'OK') {
-                    directionsRenderer.setDirections(response);
+                    const route = response.routes[0];
+                    const routeDistance = route.legs[0].distance.value;
+
+                    if (routeDistance < maxWalkingDistance) {
+                        const extraDistance = maxWalkingDistance - routeDistance;
+                        const extraWaypoint = {
+                            location: new google.maps.LatLng(
+                                (start.lat() + end.lat()) / 2,
+                                (start.lng() + end.lng()) / 2
+                            ),
+                            stopover: true
+                        };
+                        waypoints.push(extraWaypoint);
+                    }
+
+                    directionsService.route({
+                        origin: start,
+                        destination: end,
+                        waypoints: waypoints,
+                        travelMode: google.maps.TravelMode.WALKING
+                    }, (newResponse, newStatus) => {
+                        if (newStatus === 'OK') {
+                            directionsRenderer.setDirections(newResponse);
+                        } else {
+                            window.alert('Directions request failed due to ' + newStatus);
+                        }
+                    });
                 } else {
                     window.alert('Directions request failed due to ' + status);
                 }
             });
+            // directionsService.route({
+            //     origin: start,
+            //     destination: end,
+            //     travelMode: google.maps.TravelMode.WALKING
+            // }, (response, status) => {
+            //     if (status === 'OK') {
+            //         directionsRenderer.setDirections(response);
+            //     } else {
+            //         window.alert('Directions request failed due to ' + status);
+            //     }
+            // });
         }
     </script>
     <!-- <div class="container mt-5">
