@@ -28,6 +28,17 @@
             <button type="submit" class="btn btn-primary">Generate Route</button>
         </form>
     </div>
+    <div id="map" class="container mt-5" style="height: 500px;"></div>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+    <script>
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: -34.397, lng: 150.644 },
+                zoom: 8
+            });
+        }
+    </script>
 
     <footer class="bg-primary text-white text-center py-3 mt-5">
         <p>&copy; 2023 Walk Loop</p>
