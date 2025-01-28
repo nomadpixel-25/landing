@@ -30,7 +30,7 @@
     </div>
     <div id="map" class="container mt-5" style="height: 500px;"></div>
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCec2M2PampMVbG14FthTZUcYPHZItmv5c&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCec2M2PampMVbG14FthTZUcYPHZItmv5c&callback=initMap" loading="lazy"></script>
     <script>
         function initMap() {
             const map = new google.maps.Map(document.getElementById('map'), {
