@@ -34,7 +34,8 @@
             let map;
             let directionsService;
             let directionsRenderer;
-        
+            let autocomplete;
+
             // Initialize the map
             function initMap() {
               map = new google.maps.Map(document.getElementById("map"), {
@@ -47,7 +48,13 @@
                 map: map
               });
             }
-        
+
+            // Initialize Autocomplete for the input field
+            const input = document.getElementById('startPoint');
+            autocomplete = new google.maps.places.Autocomplete(input);
+
+            // Bias the autocomplete predictions to the current map viewport
+            autocomplete.setBounds(map.getBounds());
             // Function to create a walking route
             function createWalkingRoute() {
               const startPoint = document.getElementById('startPoint').value;
@@ -70,7 +77,7 @@
                     waypoints: [],  // No intermediate waypoints for a simple loop
                     optimizeWaypoints: false,
                     unitSystem: google.maps.UnitSystem.METRIC,
-                    provideRouteAlternatives: false
+                    provideRouteAlternatives: true
                   };
         
                   // Request the route
@@ -99,142 +106,8 @@
             // Load the map on page load
             window.onload = initMap;
           </script>
-        <!-- <script>
-            let map, directionsService, directionsRenderer; -->
-            
-            // function initMap() {
-            //     directionsService = new google.maps.DirectionsService();
-            //     directionsRenderer = new google.maps.DirectionsRenderer();
-                
-            //     map = new google.maps.Map(document.getElementById('map'), {
-            //         zoom: 14,
-            //         // center: { lat: -34.397, lng: 150.644 }
-            //     });
-            //     directionsRenderer.setMap(map);
-                
-            //     if (navigator.geolocation) {
-            //         navigator.geolocation.getCurrentPosition(position => {
-            //             const pos = {
-            //                 lat: position.coords.latitude,
-            //                 lng: position.coords.longitude
-            //             };
-            //             map.setCenter(pos);
-            //             startMarker = new google.maps.Marker({
-            //                 position: pos,
-            //                 map: map,
-            //                 draggable: true,
-            //                 title: "Start Point"
-            //             });
-            //             endMarker = new google.maps.Marker({
-            //                 position: pos,
-            //                 map: map,
-            //                 draggable: true,
-            //                 title: "End Point"
-            //             });
-            //             document.getElementById('startPoint').value = `${pos.lat}, ${pos.lng}`;
-            //             document.getElementById('endPoint').value = `${pos.lat}, ${pos.lng}`;
-            //         });
-            //     }
-                
-            //     const autocompleteStart = new google.maps.places.Autocomplete(document.getElementById('startPoint'));
-            //     const autocompleteEnd = new google.maps.places.Autocomplete(document.getElementById('endPoint'));
-                
-            //     autocompleteStart.addListener('place_changed', () => {
-            //         const place = autocompleteStart.getPlace();
-            //         if (place.geometry) {
-            //             startMarker.setPosition(place.geometry.location);
-            //             map.setCenter(place.geometry.location);
-            //         }
-            //     });
-                
-            //     autocompleteEnd.addListener('place_changed', () => {
-            //         const place = autocompleteEnd.getPlace();
-            //         if (place.geometry) {
-            //             endMarker.setPosition(place.geometry.location);
-            //         }
-            //     });
-                
-            //     document.getElementById('walkForm').addEventListener('submit', event => {
-            //         event.preventDefault();
-            //         calculateAndDisplayRoute();
-            //     });
-            // }
-            
-            // function calculateAndDisplayRoute() {
-            //     const start = startMarker.getPosition();
-            //     const end = endMarker.getPosition();
-            //     const duration = parseInt(document.getElementById('duration').value);
-            //     const waypoints = [];
-            //     const maxWalkingSpeed = 5; // km/h
-            //     const maxWalkingDistance = (duration / 60) * maxWalkingSpeed * 1000; // convert to meters
-                
-            //     directionsService.route({
-            //         origin: start,
-            //         destination: end,
-            //         travelMode: google.maps.TravelMode.WALKING
-            //     }, (response, status) => {
-            //         if (status === 'OK') {
-            //             const route = response.routes[0];
-            //             const routeDistance = route.legs[0].distance.value;
-                        
-            //             if (routeDistance < maxWalkingDistance) {
-            //                 const extraDistance = maxWalkingDistance - routeDistance;
-            //                 const extraWaypoint = {
-            //                     location: new google.maps.LatLng(
-            //                         (start.lat() + end.lat()) / 2,
-            //                         (start.lng() + end.lng()) / 2
-            //                     ),
-            //                     stopover: true
-            //                 };
-            //                 waypoints.push(extraWaypoint);
-            //             }
-                        
-            //             directionsService.route({
-            //                 origin: start,
-            //                 destination: end,
-            //                 waypoints: waypoints,
-            //                 travelMode: google.maps.TravelMode.WALKING
-            //             }, (newResponse, newStatus) => {
-            //                 if (newStatus === 'OK') {
-            //                     directionsRenderer.setDirections(newResponse);
-            //                 } else {
-            //                     window.alert('Directions request failed due to ' + newStatus);
-            //                 }
-            //             });
-            //         } else {
-            //             window.alert('Directions request failed due to ' + status);
-            //         }
-            //     });
-            //     // directionsService.route({
-            //         //     origin: start,
-            //         //     destination: end,
-            //         //     travelMode: google.maps.TravelMode.WALKING
-            //         // }, (response, status) => {
-            //             //     if (status === 'OK') {
-            //                 //         directionsRenderer.setDirections(response);
-            //                 //     } else {
-            //                     //         window.alert('Directions request failed due to ' + status);
-            //                     //     }
-            //                     // });
-            //                 }
-            //                 </script>
-    <!-- <div class="container mt-5">
-        <form id="walkForm">
-            <div class="form-group">
-                <label for="startPoint">Start Point</label>
-                <input type="text" class="form-control" id="startPoint" placeholder="Enter starting point">
-            </div>
-            <div class="form-group">
-                <label for="endPoint">End Point</label>
-                <input type="text" class="form-control" id="endPoint" placeholder="Enter ending point (optional)">
-            </div>
-            <div class="form-group">
-                <label for="duration">Desired Duration (minutes)</label>
-                <input type="number" class="form-control" id="duration" placeholder="Enter duration in minutes">
-            </div>
-            <button type="submit" class="btn btn-primary">Generate Route</button>
-        </form>
-    </div> -->
+
+    </div>
     <!-- fetch latest commit time -->
 </div>
     <div class="container mt-5">
@@ -268,7 +141,12 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCec2M2PampMVbG14FthTZUcYPHZItmv5c&libraries=places&callback=initMap" defer></script>
 
     <footer class="bg-primary text-white text-center py-3 mt-5">
-        <p>&copy; 2023 Walk Loop</p>
+        <p>Version: <span id="version"></span></p>
+        <script>
+            document.getElementById('version').textContent = new Date().toLocaleString();
+        </script>
+          
+        <p>&copy; 2025 Walk Loop</p>
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
