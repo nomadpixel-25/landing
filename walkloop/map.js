@@ -1,6 +1,7 @@
 let map;
 let marker;
 let infoWindow;
+let center;
 
 // Load the Places Library
 // To load the Places Library, first load the Maps JavaScript API, by adding the inline bootstrap loader to your application code, as shown in the following snippet: 
@@ -117,7 +118,7 @@ function updateInfoWindow(content, center) {
   });
 }
 
-initMap();
+// initMap();
 
 
 const request = {
@@ -139,7 +140,6 @@ console.log(places);
 
 // The following example shows how to use the Places Library to search for places that match the search criteria "Tacos in Mountain View". The searchByText method is called with a request object that specifies the search criteria. The response object contains an array of Place objects that match the search criteria. The Place object contains information about the place, such as its name, location, and business status.
 
-let center;
 
 async function initMap() {
     const { Map } = await google.maps.importLibrary("maps");
