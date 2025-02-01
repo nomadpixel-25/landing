@@ -14,7 +14,7 @@ v: "beta",
 // Add other bootstrap parameters as needed, using camel case.
 });
 
-const { Place } = await google.maps.importLibrary("places");
+const { Place } = google.maps.importLibrary("places");
 
 // Create the input HTML element, and append it.
 //@ts-ignore
@@ -29,7 +29,7 @@ const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement();
 //@ts-ignore
 placeAutocomplete.id = "place-autocomplete-input";
 
-const card = await document.getElementById("place-autocomplete-card");
+const card = document.getElementById("place-autocomplete-card");
 
 //@ts-ignore
 card.appendChild(placeAutocomplete);
@@ -134,7 +134,7 @@ const request = {
     useStrictTypeFiltering: false,
   };
   //@ts-ignore
-const { places } = await Place.searchByText(request);
+const { places } = Place.searchByText(request);
 console.log(places);
 // places is an array of Place objects that match the search criteria.
 
