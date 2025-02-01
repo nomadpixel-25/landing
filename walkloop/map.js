@@ -1,90 +1,63 @@
-document.addEventListener('DOMContentLoaded', function() {
-    loadScript();
-});
-
-// Description: JavaScript file for the WalkLoop map page.
-// Load the Google Maps API script dynamically
-function loadScript() {
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCec2M2PampMVbG14FthTZUcYPHZItmv5c&libraries=places&callback=initMap`;
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
-}
-
-// Call the loadScript function to load the Google Maps API
-loadScript();
 let map;
 let directionsService;
 let directionsRenderer;
-let autocomplete;
-let places;
 
-// Initialize the map
 function initMap() {
-    map = new google.maps.Map(document.getElementById("map"), {
-    center: { lat: 0, lng: 0 }, // Default center, will update based on input
-    zoom: 14
-    });
+  // Initialize the map
+  map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 14,
+    center: { lat: 40.730610, lng: -73.935242 },  // Default center to NYC
+    mapTypeId: 'roadmap'
+  });
 
-    directionsService = new google.maps.DirectionsService();
-    directionsRenderer = new google.maps.DirectionsRenderer({
-    map: map
-    });
-    // Initialize Autocomplete for the input field
-    const input = document.getElementById('startPoint');
-    autocomplete = new google.maps.places.Autocomplete(input);
-
-    // Bias the autocomplete predictions to the current map viewport
-    autocomplete.setBounds(map.getBounds());
+  directionsService = new google.maps.DirectionsService();
+  directionsRenderer = new google.maps.DirectionsRenderer();
+  directionsRenderer.setMap(map);
 }
-// Function to create a walking route
-function createWalkingRoute() {
-    const startPoint = document.getElementById('startPoint').value;
-    if (!startPoint) {
-    alert('Please enter a starting point');
+
+function calculateRoute() {
+  const origin = document.getElementById('origin').value;
+  const destination = document.getElementById('destination').value;
+
+  if (!origin || !destination) {
+    alert('Please enter both origin and destination.');
     return;
-    }
+  }
 
-    // Geocode the starting point address to get lat/lng
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ address: startPoint }, (results, status) => {
-    if (status === google.maps.GeocoderStatus.OK) {
-        const origin = results[0].geometry.location;
-        
-        // Use Directions API to create a walking route
-        const request = {
-        origin: origin,
-        destination: origin,  // Start and end at the same point
-        travelMode: google.maps.TravelMode.WALKING,
-        waypoints: [],  // No intermediate waypoints for a simple loop
-        optimizeWaypoints: false,
-        unitSystem: google.maps.UnitSystem.METRIC,
-        provideRouteAlternatives: true
-        };
+  const request = {
+    origin: origin,
+    destination: destination,
+    travelMode: google.maps.TravelMode.WALKING,
+    unitSystem: google.maps.UnitSystem.METRIC,
+    optimizeWaypoints: true,
+    provideRouteAlternatives: true,
+  };
 
-        // Request the route
-        directionsService.route(request, (response, status) => {
-        if (status === google.maps.DirectionsStatus.OK) {
-            // Render the route
-            directionsRenderer.setDirections(response);
-
-            // Calculate total duration and adjust the route if necessary
-            const routeDuration = response.routes[0].legs[0].duration.value / 60; // in minutes
-            if (routeDuration < 20) {
-            alert("The route is shorter than 20 minutes. You may need to modify the route manually.");
-            } else if (routeDuration > 20) {
-            alert("The route is longer than 20 minutes. Consider adjusting your parameters.");
-            }
-        } else {
-            alert('Directions request failed due to ' + status);
-        }
-        });
+  // Request the walking directions
+  directionsService.route(request, (response, status) => {
+    if (status === google.maps.DirectionsStatus.OK) {
+      directionsRenderer.setDirections(response);
+      estimateWalkDuration(response);
     } else {
-        alert('Geocode was not successful for the following reason: ' + status);
+      alert('Directions request failed due to ' + status);
     }
-    });
+  });
 }
 
-// Load the map on page load
-window.onload = initMap;
+function estimateWalkDuration(response) {
+  const route = response.routes[0];
+  const legs = route.legs;
+  let totalDuration = 0;
+  for (let i = 0; i < legs.length; i++) {
+    totalDuration += legs[i].duration.value;
+  }
+  
+  // Convert seconds to minutes
+  const walkDurationInMinutes = totalDuration / 60;
+  alert('Estimated Walk Duration: ' + walkDurationInMinutes.toFixed(2) + ' minutes');
+  
+  // Adjust the route to be around 15 minutes if necessary
+  if (walkDurationInMinutes < 15) {
+    alert('The generated route is shorter than 15 minutes. You can adjust the origin or destination.');
+  }
+}
