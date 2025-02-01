@@ -141,17 +141,17 @@ console.log(places);
 // The following example shows how to use the Places Library to search for places that match the search criteria "Tacos in Mountain View". The searchByText method is called with a request object that specifies the search criteria. The response object contains an array of Place objects that match the search criteria. The Place object contains information about the place, such as its name, location, and business status.
 
 
-async function initMap() {
-    const { Map } = await google.maps.importLibrary("maps");
+// async function initMap() {
+//     const { Map } = await google.maps.importLibrary("maps");
 
-    center = { lat: 37.4161493, lng: -122.0812166 };
-    map = new Map(document.getElementById("map"), {
-    center: center,
-    zoom: 11,
-    mapId: "DEMO_MAP_ID",
-    });
-    findPlaces();
-}
+//     center = { lat: 37.4161493, lng: -122.0812166 };
+//     map = new Map(document.getElementById("map"), {
+//     center: center,
+//     zoom: 11,
+//     mapId: "DEMO_MAP_ID",
+//     });
+//     findPlaces();
+// }
 
 async function findPlaces() {
     const { Place } = await google.maps.importLibrary("places");
