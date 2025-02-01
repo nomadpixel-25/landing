@@ -46,77 +46,77 @@ const pac = new google.maps.places.PlaceAutocompleteElement({
 
 
 
-async function initMap() {
-  // Request needed libraries.
-  //@ts-ignore
-  const [{ Map }, { AdvancedMarkerElement }] = await Promise.all([
-    google.maps.importLibrary("marker"),
-    google.maps.importLibrary("places"),
-  ]);
+// async function initMap() {
+//   // Request needed libraries.
+//   //@ts-ignore
+//   const [{ Map }, { AdvancedMarkerElement }] = await Promise.all([
+//     google.maps.importLibrary("marker"),
+//     google.maps.importLibrary("places"),
+//   ]);
 
-  // Initialize the map.
-  map = new google.maps.Map(document.getElementById("map"), {
-    center: { lat: 40.749933, lng: -73.98633 },
-    zoom: 13,
-    mapId: "4504f8b37365c3d0",
-    mapTypeControl: false,
-  });
+//   // Initialize the map.
+//   map = new google.maps.Map(document.getElementById("map"), {
+//     center: { lat: 40.749933, lng: -73.98633 },
+//     zoom: 13,
+//     mapId: "4504f8b37365c3d0",
+//     mapTypeControl: false,
+//   });
 
-  //@ts-ignore
-  const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement();
+//   //@ts-ignore
+//   const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement();
 
-  //@ts-ignore
-  placeAutocomplete.id = "place-autocomplete-input";
+//   //@ts-ignore
+//   placeAutocomplete.id = "place-autocomplete-input";
 
-  const card = document.getElementById("place-autocomplete-card");
+//   const card = document.getElementById("place-autocomplete-card");
 
-  //@ts-ignore
-  card.appendChild(placeAutocomplete);
-  map.controls[google.maps.ControlPosition.TOP_LEFT].push(card);
-  // Create the marker and infowindow
-  marker = new google.maps.marker.AdvancedMarkerElement({
-    map,
-  });
-  infoWindow = new google.maps.InfoWindow({});
-  // Add the gmp-placeselect listener, and display the results on the map.
-  //@ts-ignore
-  placeAutocomplete.addEventListener("gmp-placeselect", async ({ place }) => {
-    await place.fetchFields({
-      fields: ["displayName", "formattedAddress", "location"],
-    });
-    // If the place has a geometry, then present it on a map.
-    if (place.viewport) {
-      map.fitBounds(place.viewport);
-    } else {
-      map.setCenter(place.location);
-      map.setZoom(17);
-    }
+//   //@ts-ignore
+//   card.appendChild(placeAutocomplete);
+//   map.controls[google.maps.ControlPosition.TOP_LEFT].push(card);
+//   // Create the marker and infowindow
+//   marker = new google.maps.marker.AdvancedMarkerElement({
+//     map,
+//   });
+//   infoWindow = new google.maps.InfoWindow({});
+//   // Add the gmp-placeselect listener, and display the results on the map.
+//   //@ts-ignore
+//   placeAutocomplete.addEventListener("gmp-placeselect", async ({ place }) => {
+//     await place.fetchFields({
+//       fields: ["displayName", "formattedAddress", "location"],
+//     });
+//     // If the place has a geometry, then present it on a map.
+//     if (place.viewport) {
+//       map.fitBounds(place.viewport);
+//     } else {
+//       map.setCenter(place.location);
+//       map.setZoom(17);
+//     }
 
-    let content =
-      '<div id="infowindow-content">' +
-      '<span id="place-displayname" class="title">' +
-      place.displayName +
-      "</span><br />" +
-      '<span id="place-address">' +
-      place.formattedAddress +
-      "</span>" +
-      "</div>";
+//     let content =
+//       '<div id="infowindow-content">' +
+//       '<span id="place-displayname" class="title">' +
+//       place.displayName +
+//       "</span><br />" +
+//       '<span id="place-address">' +
+//       place.formattedAddress +
+//       "</span>" +
+//       "</div>";
 
-    updateInfoWindow(content, place.location);
-    marker.position = place.location;
-  });
-}
+//     updateInfoWindow(content, place.location);
+//     marker.position = place.location;
+//   });
+// }
 
-// Helper function to create an info window.
-function updateInfoWindow(content, center) {
-  infoWindow.setContent(content);
-  infoWindow.setPosition(center);
-  infoWindow.open({
-    map,
-    anchor: marker,
-    shouldFocus: false,
-  });
-}
+// // Helper function to create an info window.
+// function updateInfoWindow(content, center) {
+//   infoWindow.setContent(content);
+//   infoWindow.setPosition(center);
+//   infoWindow.open({
+//     map,
+//     anchor: marker,
+//     shouldFocus: false,
+//   });
+// }
 
 // initMap();
 
@@ -141,17 +141,17 @@ console.log(places);
 // The following example shows how to use the Places Library to search for places that match the search criteria "Tacos in Mountain View". The searchByText method is called with a request object that specifies the search criteria. The response object contains an array of Place objects that match the search criteria. The Place object contains information about the place, such as its name, location, and business status.
 
 
-// async function initMap() {
-//     const { Map } = await google.maps.importLibrary("maps");
+async function initMap() {
+    const { Map } = await google.maps.importLibrary("maps");
 
-//     center = { lat: 37.4161493, lng: -122.0812166 };
-//     map = new Map(document.getElementById("map"), {
-//     center: center,
-//     zoom: 11,
-//     mapId: "DEMO_MAP_ID",
-//     });
-//     findPlaces();
-// }
+    center = { lat: 37.4161493, lng: -122.0812166 };
+    map = new Map(document.getElementById("map"), {
+    center: center,
+    zoom: 11,
+    mapId: "DEMO_MAP_ID",
+    });
+    findPlaces();
+}
 
 async function findPlaces() {
     const { Place } = await google.maps.importLibrary("places");
