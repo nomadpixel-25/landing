@@ -29,7 +29,7 @@ const placeAutocomplete = new google.maps.places.PlaceAutocompleteElement();
 //@ts-ignore
 placeAutocomplete.id = "place-autocomplete-input";
 
-const card = document.getElementById("place-autocomplete-card");
+const card = await document.getElementById("place-autocomplete-card");
 
 //@ts-ignore
 card.appendChild(placeAutocomplete);
