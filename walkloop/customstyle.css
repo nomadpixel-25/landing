@@ -11,3 +11,4 @@ body {
 .form-container {
   margin-bottom: 20px;
 }
+form { height: 100%; }
