@@ -1,6 +1,8 @@
-// import React from "react";
+// src/components/ChoreTable.js
 import React, { useState } from "react";
+import { DndContext } from '@dnd-kit/core';
 import MemberCard from "./MemberCard";
+import DraggableChore from "./DraggableChore";
 
 const members = [
   { name: "Ale", icon: "👩" },
@@ -15,88 +17,52 @@ const chores = [
   { name: "Pick-up", icon: "🏡" },
 ];
 
-// function ChoreTable() {
-//   return (
-//     <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6">
-//       {members.map((member) => (
-//         <MemberCard key={member.name} member={member} chores={chores} />
-//       ))}
-//     </div>
-//   );
-// }
+
 
 function ChoreTable() {
-    const [assignments, setAssignments] = useState({});
-    const [completedChores, setCompletedChores] = useState({}); // ✅ Track completed chores
+  // assignments: an object where key = member name, and value = array of chores
+  const [assignments, setAssignments] = useState({});
 
-    // Function to assign chores randomly
-    const assignChores = () => {
-      const newAssignments = {};
-      members.forEach((member) => {
-        newAssignments[member.name] = [
-          chores[Math.floor(Math.random() * chores.length)],
-        ];
-      });
-      setAssignments(newAssignments);
-    };
-    // ✅ Function to toggle chore completion
-    // const toggleChoreCompletion = (memberName, choreName) => {
-    //   setCompletedChores((prev) => ({
-    //     ...prev,
-    //     [memberName]: prev[memberName]?.includes(choreName)
-    //       ? prev[memberName].filter((chore) => chore !== choreName)
-    //       : [...(prev[memberName] || []), choreName],
-    //   }));
-    // };
-    // const toggleChoreCompletion = (memberName, choreName) => {
-    //   setCompletedChores((prev) => {
-    //     const updatedChores = {
-    //       ...prev,
-    //       [memberName]: prev[memberName]?.includes(choreName)
-    //         ? prev[memberName].filter((chore) => chore !== choreName)
-    //         : [...(prev[memberName] || []), choreName],
-    //     };
-    
-    //     console.log("Updated completedChores:", updatedChores); // 🔍 Debugging
-    //     return updatedChores;
-    //   });
-    // };
-
-    
-  const toggleChoreCompletion = (memberName, choreName) => {
-    setCompletedChores((prev) => {
-      const updatedChores = {
-        ...prev,
-        [memberName]: prev[memberName]?.includes(choreName)
-          ? prev[memberName].filter((chore) => chore !== choreName)
-          : [...(prev[memberName] || []), choreName],
-      };
-  
-      console.log("Updated completedChores:", updatedChores); // 🔍 Debugging
-      return updatedChores;
-    });
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    // Check if the chore was dropped over a member card
+    if (over && active.id && over.id) {
+      const memberName = over.id;
+      const chore = chores.find((chore) => chore.name === active.id);
+      if (chore) {
+        setAssignments((prev) => ({
+          ...prev,
+          [memberName]: [...(prev[memberName] || []), chore],
+        }));
+      }
+    }
   };
-  
-    return (
-      <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-6">
-        <button
-          onClick={assignChores}
-          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded"
-        >
-          Assign Chores
-        </button>
-        {members.map((member) => (
-          <MemberCard
-            key={member.name}
-            member={member}
-            chores={assignments[member.name] || []}
-            completedChores={completedChores[member.name] || []} // ✅ Pass completed chores
-            onToggleChore={toggleChoreCompletion} // ✅ Pass toggle function
-          />
-        ))}
+
+  return (
+    <DndContext onDragEnd={handleDragEnd}>
+      <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
+        <h2 className="text-2xl font-bold mb-4 text-center">
+          Drag & Drop Chores
+        </h2>
+        {/* Draggable Chore Items */}
+        <div className="flex justify-center space-x-4 mb-6">
+          {chores.map((chore) => (
+            <DraggableChore key={chore.name} chore={chore} />
+          ))}
+        </div>
+        {/* Member Cards as Droppable Zones */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {members.map((member) => (
+            <MemberCard
+              key={member.name}
+              member={member}
+              chores={assignments[member.name] || []}
+            />
+          ))}
+        </div>
       </div>
-    );
-  }
-;
+    </DndContext>
+  );
+}
 
 export default ChoreTable;
