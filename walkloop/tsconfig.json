@@ -9,5 +9,5 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/types", "src/types/**/*.ts", "src/types/**/*.tsx"]
+  "include": ["walk-loop-react/src/types", "walk-loop-react/src/types/**/*.ts", "walk-loop-react/src/types/**/*.tsx"]
 }
