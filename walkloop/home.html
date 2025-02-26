@@ -3,55 +3,801 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Walk Loop</title>
-    <script type="module" src="./map.js"></script>
-
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="./customstyle.css" rel="stylesheet">
-    <link rel="icon" href="./images/favicon.ico" type="image/x-icon">
-</head>
-
-<body onload="initMap()">
-    <header class="bg-primary text-white text-center py-3">
-        <h1>Walk Loop 2248</h1>
-    </header>
-    <div class="form-container">
-        <label for="origin">Origin (Address or Place):</label>
-        <input type="text" id="origin" placeholder="Enter origin">
-        <br>
-        <label for="destination">Destination (Address or Place):</label>
-        <input type="text" id="destination" placeholder="Enter destination">
-        <br>
-        <button onclick="calculateRoute()">Generate Walk</button>
-      </div>
+    <title>Circular Walking Route Planner</title>
+    <!-- Leaflet for mapping -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     
-      <div id="map"></div>
-      <div id="place-autocomplete-card">
-        <input id="place-autocomplete-input" type="text" placeholder="Search for places">
-      </div>
-
-    <!-- fetch latest commit time -->
-</div>
-    <div class="container mt-5">
-        <h2>Latest Commit Time</h2>
-        <p id="commitTime">Fetching...</p>
-    <script href="./fetch_time.js"></script>
+    <!-- Leaflet Routing Machine for route calculations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.css" />
+    
+    <!-- MapBox GL for enhanced map features -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.15.0/mapbox-gl.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.15.0/mapbox-gl.css" />
+    
+    <!-- OSRM for routing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-osrm/1.0.0/OSRM.js"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background-color: #3498db;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .app-description {
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        
+        main {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        @media (min-width: 768px) {
+            main {
+                flex-direction: row;
+            }
+        }
+        
+        .controls {
+            flex: 1;
+            padding: 20px;
+        }
+        
+        .map-container {
+            flex: 2;
+            min-height: 500px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .route-options {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        
+        .route-card {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .route-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .route-card.active {
+            border: 2px solid #3498db;
+            background-color: #edf7fd;
+        }
+        
+        .route-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 15px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background-color: #ffecec;
+            color: #e74c3c;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .info-pill {
+            display: inline-block;
+            background-color: #edf7fd;
+            color: #3498db;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-right: 5px;
+        }
+        
+        /* Autocomplete results */
+        .autocomplete-results {
+            position: absolute;
+            background: white;
+            z-index: 1000;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        
+        .autocomplete-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .autocomplete-item:hover {
+            background-color: #f5f7fa;
+        }
+        
+        .autocomplete-active {
+            background-color: #edf7fd;
+        }
+        
+        /* Route path styling */
+        .route-path {
+            stroke-dasharray: 8, 5;
+            animation: dash 5s linear infinite;
+        }
+        
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -40;
+            }
+        }
+        
+        /* API key notice */
+        .api-notice {
+            background-color: #fffde7;
+            color: #7f6e00;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Circular Walking Route Planner</h1>
+            <p class="app-description">Plan a walking route that starts and ends at the same location. Perfect for exercise or exploring your neighborhood.</p>
+        </header>
+        
+        <main>
+            <div class="controls">
+                <div class="api-notice">
+                    <p>For full functionality, replace placeholder API keys with your own keys for MapBox, OpenRouteService, or Google Maps.</p>
+                </div>
+                
+                <div class="error-message" id="error-message"></div>
+                
+                <div class="form-group">
+                    <label for="address">Starting Location:</label>
+                    <input type="text" id="address" placeholder="Enter an address or click on the map">
+                    <div id="autocomplete-results" class="autocomplete-results"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="duration">Walking Duration (minutes):</label>
+                    <input type="number" id="duration" min="5" max="240" value="30">
+                </div>
+                
+                <div class="form-group">
+                    <label for="pace">Walking Pace:</label>
+                    <select id="pace">
+                        <option value="3">Slow (3 km/h)</option>
+                        <option value="5" selected>Moderate (5 km/h)</option>
+                        <option value="6.5">Brisk (6.5 km/h)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="routeType">Route Preference:</label>
+                    <select id="routeType">
+                        <option value="balanced" selected>Balanced (Mix of paths)</option>
+                        <option value="scenic">Scenic (Parks & green spaces)</option>
+                        <option value="pedestrian">Pedestrian friendly (Sidewalks)</option>
+                    </select>
+                </div>
+                
+                <button id="generate-routes">Generate Walking Routes</button>
+                
+                <div class="loading" id="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Planning your routes...</p>
+                </div>
+                
+                <div class="route-options" id="route-options"></div>
+            </div>
+            
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+        </main>
     </div>
     
-
-
-    <footer class="bg-primary text-white text-center py-3 mt-5">
-        <p>Version: <span id="version"></span></p>
-        <script>
-            document.getElementById('version').textContent = new Date().toLocaleString();
-        </script>
-          
-        <p>&copy; 2025 Walk Loop</p>
-    </footer>
-
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    
+    <script>
+        // MapBox access token (replace with your own token for full functionality)
+        const mapboxToken = 'pk.placeholder'; // Replace with your MapBox token
+        
+        // OpenRouteService API key (replace with your own key for full functionality)
+        const orsApiKey = 'placeholder'; // Replace with your OpenRouteService API key
+        
+        // Initialize map
+        const map = L.map('map').setView([51.505, -0.09], 13);
+        
+        // Use MapBox tiles for better styling and features
+        L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, {
+            attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            id: 'mapbox/streets-v11',
+            tileSize: 512,
+            zoomOffset: -1,
+            accessToken: mapboxToken
+        }).addTo(map);
+        
+        // Fallback to OpenStreetMap if MapBox token is not set
+        if (mapboxToken === 'pk.placeholder') {
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+        }
+        
+        let startMarker = null;
+        let routeLayers = [];
+        let currentLocation = null;
+        
+        // Geolocation - Get user's current location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    currentLocation = { lat: latitude, lng: longitude };
+                    map.setView([latitude, longitude], 15);
+                    setStartingPoint({ lat: latitude, lng: longitude });
+                    
+                    // Reverse geocode to get address
+                    reverseGeocode(latitude, longitude);
+                },
+                (error) => {
+                    console.log('Geolocation error:', error);
+                    // Use default location if geolocation fails
+                    setStartingPoint({ lat: 51.505, lng: -0.09 });
+                }
+            );
+        } else {
+            // Fallback for browsers without geolocation
+            setStartingPoint({ lat: 51.505, lng: -0.09 });
+        }
+        
+        // Add marker when clicking on the map
+        map.on('click', function(e) {
+            setStartingPoint(e.latlng);
+            
+            // Get address from coordinates (reverse geocoding)
+            reverseGeocode(e.latlng.lat, e.latlng.lng);
+        });
+        
+        // Set starting point marker
+        function setStartingPoint(latlng) {
+            if (startMarker) {
+                map.removeLayer(startMarker);
+            }
+            
+            // Add custom marker
+            startMarker = L.marker(latlng, {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: '<div style="background-color: #3498db; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 1px #3498db;"></div>',
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                })
+            }).addTo(map);
+            
+            // Center the map on the marker
+            map.setView(latlng, 15);
+        }
+        
+        // Reverse geocoding - Get address from coordinates
+        function reverseGeocode(lat, lng) {
+            // Using MapBox Geocoding API
+            const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}`;
+            
+            if (mapboxToken !== 'pk.placeholder') {
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.features && data.features.length > 0) {
+                            document.getElementById('address').value = data.features[0].place_name;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Reverse geocoding error:', error);
+                    });
+            } else {
+                // Fallback when API key is not provided
+                document.getElementById('address').value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            }
+        }
+        
+        // Address autocomplete
+        const addressInput = document.getElementById('address');
+        const autocompleteResults = document.getElementById('autocomplete-results');
+        
+        addressInput.addEventListener('input', debounce(function() {
+            const query = this.value.trim();
+            
+            if (query.length < 3) {
+                autocompleteResults.style.display = 'none';
+                return;
+            }
+            
+            // Using MapBox Geocoding API for autocomplete
+            if (mapboxToken !== 'pk.placeholder') {
+                const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&types=address,place&limit=5`;
+                
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        displayAutocompleteResults(data.features);
+                    })
+                    .catch(error => {
+                        console.error('Geocoding error:', error);
+                    });
+            } else {
+                // Fallback dummy autocomplete when API key is not provided
+                const dummyResults = [
+                    { place_name: query + ', New York, USA', center: [-74.0060, 40.7128] },
+                    { place_name: query + ', London, UK', center: [-0.1278, 51.5074] },
+                    { place_name: query + ', Paris, France', center: [2.3522, 48.8566] }
+                ];
+                displayAutocompleteResults(dummyResults);
+            }
+        }, 300));
+        
+        // Display autocomplete results
+        function displayAutocompleteResults(results) {
+            autocompleteResults.innerHTML = '';
+            
+            if (results.length === 0) {
+                autocompleteResults.style.display = 'none';
+                return;
+            }
+            
+            results.forEach(result => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.textContent = result.place_name;
+                
+                item.addEventListener('click', function() {
+                    addressInput.value = result.place_name;
+                    autocompleteResults.style.display = 'none';
+                    
+                    // Set map marker at selected location
+                    const center = result.center || [0, 0];
+                    setStartingPoint({ lat: center[1], lng: center[0] });
+                });
+                
+                autocompleteResults.appendChild(item);
+            });
+            
+            autocompleteResults.style.display = 'block';
+        }
+        
+        // Hide autocomplete results when clicking outside
+        document.addEventListener('click', function(e) {
+            if (e.target !== addressInput && e.target !== autocompleteResults) {
+                autocompleteResults.style.display = 'none';
+            }
+        });
+        
+        // Generate routes button event
+        document.getElementById('generate-routes').addEventListener('click', function() {
+            if (!startMarker) {
+                showError("Please select a starting point by clicking on the map or entering an address");
+                return;
+            }
+            
+            const duration = parseInt(document.getElementById('duration').value);
+            if (isNaN(duration) || duration < 5 || duration > 240) {
+                showError("Please enter a valid duration between 5 and 240 minutes");
+                return;
+            }
+            
+            // Clear existing routes
+            clearRoutes();
+            
+            // Show loading spinner
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('route-options').innerHTML = '';
+            
+            // Get the starting point and parameters
+            const startPoint = startMarker.getLatLng();
+            const pace = parseFloat(document.getElementById('pace').value);
+            const routeType = document.getElementById('routeType').value;
+            
+            // Calculate distance based on pace and duration (in km)
+            const distanceKm = (duration / 60) * pace;
+            
+            // Generate routes
+            generateRoutes(startPoint, distanceKm, routeType, duration);
+        });
+        
+        // Generate routes using OpenRouteService API (or fallback to simulated routes)
+        function generateRoutes(startPoint, distanceKm, routeType, duration) {
+            if (orsApiKey !== 'placeholder') {
+                // Code for using actual OpenRouteService API would go here
+                // For now, we'll use the simulated routes
+                setTimeout(() => {
+                    const routes = generateCircularRoutes(startPoint, distanceKm, routeType);
+                    
+                    // Hide loading spinner
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    // Display route options
+                    displayRouteOptions(routes, duration, distanceKm);
+                    
+                    // Show first route by default
+                    showRoute(routes[0], 0);
+                }, 1500);
+            } else {
+                // Fallback to simulated routes
+                setTimeout(() => {
+                    const routes = generateCircularRoutes(startPoint, distanceKm, routeType);
+                    
+                    // Hide loading spinner
+                    document.getElementById('loading').style.display = 'none';
+                    
+                    // Display route options
+                    displayRouteOptions(routes, duration, distanceKm);
+                    
+                    // Show first route by default
+                    showRoute(routes[0], 0);
+                }, 1500);
+            }
+        }
+        
+        // Generate simulated circular routes (fallback when API keys are not provided)
+        function generateCircularRoutes(startPoint, distanceKm, routeType) {
+            // In a real app, these would come from a routing API
+            // For demo purposes, we generate synthetic routes
+            
+            const routes = [];
+            const numPoints = Math.max(10, Math.floor(distanceKm * 5)); // More points for longer routes
+            
+            // Generate 3 different route options
+            for (let routeIdx = 0; routeIdx < 3; routeIdx++) {
+                let points = [];
+                const radius = distanceKm * 1000 / (2 * Math.PI); // Rough conversion to meters
+                
+                // Starting point
+                points.push([startPoint.lat, startPoint.lng]);
+                
+                // Generate points to form a roughly circular route
+                for (let i = 1; i < numPoints; i++) {
+                    // Calculate angle for this point (not completely circular to make it look natural)
+                    const angle = (i / numPoints) * 2 * Math.PI;
+                    
+                    // Add some randomness based on route type and index
+                    let jitter = (routeIdx + 1) * 0.0003; // Different jitter for each route
+                    if (routeType === 'scenic') {
+                        jitter *= 1.5; // Scenic routes are more winding
+                    } else if (routeType === 'pedestrian') {
+                        jitter *= 0.8; // Pedestrian routes follow roads more closely
+                    }
+                    
+                    // More randomness for middle points, less for points near start/end
+                    const randomnessFactor = Math.sin(angle) * 0.5 + 0.5;
+                    
+                    // Calculate point position with some randomness
+                    const lat = startPoint.lat + Math.sin(angle) * (radius / 111000) + (Math.random() - 0.5) * jitter * randomnessFactor;
+                    const lng = startPoint.lng + Math.cos(angle) * (radius / (111000 * Math.cos(startPoint.lat * Math.PI / 180))) + (Math.random() - 0.5) * jitter * randomnessFactor;
+                    
+                    points.push([lat, lng]);
+                }
+                
+                // Close the loop - return to starting point
+                points.push([startPoint.lat, startPoint.lng]);
+                
+                // Calculate "actual" distance and elevation gain (simulated)
+                const actualDistance = distanceKm * (0.95 + Math.random() * 0.2); // +/- 10%
+                
+                let elevationGain;
+                if (routeType === 'scenic') {
+                    elevationGain = Math.floor(actualDistance * 15 * (0.8 + Math.random() * 0.4)); // Higher for scenic
+                } else {
+                    elevationGain = Math.floor(actualDistance * 10 * (0.7 + Math.random() * 0.4));
+                }
+                
+                // Add route details
+                routes.push({
+                    points: points,
+                    distance: actualDistance,
+                    elevationGain: elevationGain,
+                    difficulty: calculateDifficulty(actualDistance, elevationGain)
+                });
+            }
+            
+            return routes;
+        }
+        
+        function calculateDifficulty(distance, elevationGain) {
+            // Simple difficulty calculation
+            const score = (distance * 0.4) + (elevationGain / 100);
+            
+            if (score < 2) return "Easy";
+            if (score < 4) return "Moderate";
+            return "Challenging";
+        }
+        
+        function displayRouteOptions(routes, duration, targetDistance) {
+            const container = document.getElementById('route-options');
+            container.innerHTML = '<h3>Suggested Routes</h3>';
+            
+            routes.forEach((route, index) => {
+                const adjustedDuration = Math.round(duration * (route.distance / targetDistance));
+                
+                const card = document.createElement('div');
+                card.className = 'route-card';
+                card.dataset.index = index;
+                card.innerHTML = `
+                    <h4>Route ${index + 1}</h4>
+                    <div class="info-pill">${route.difficulty}</div>
+                    <div class="route-stats">
+                        <span>${route.distance.toFixed(2)} km</span>
+                        <span>~${adjustedDuration} min</span>
+                        <span>${route.elevationGain}m elevation</span>
+                    </div>
+                `;
+                
+                card.addEventListener('click', function() {
+                    // Highlight selected route card
+                    document.querySelectorAll('.route-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    
+                    // Show the selected route
+                    showRoute(route, index);
+                });
+                
+                container.appendChild(card);
+            });
+            
+            // Highlight first route by default
+            document.querySelector('.route-card').classList.add('active');
+        }
+        
+        function showRoute(route, index) {
+            // Clear existing routes
+            clearRoutes();
+            
+            // Add new route to map
+            const colors = ['#3498db', '#2ecc71', '#e74c3c']; // Different color for each route
+            const routeLayer = L.polyline(route.points, {
+                color: colors[index % colors.length],
+                weight: 5,
+                opacity: 0.7,
+                className: 'route-path'
+            }).addTo(map);
+            
+            // Add direction markers along the route
+            const midPoint = Math.floor(route.points.length / 2);
+            const quarterPoint = Math.floor(route.points.length / 4);
+            const threeQuarterPoint = Math.floor(3 * route.points.length / 4);
+            
+            const directionMarkers = [
+                L.marker(route.points[quarterPoint], {
+                    icon: L.divIcon({
+                        className: 'direction-marker',
+                        html: `<div style="font-size: 24px; color: ${colors[index % colors.length]};">→</div>`,
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    })
+                }),
+                L.marker(route.points[midPoint], {
+                    icon: L.divIcon({
+                        className: 'direction-marker',
+                        html: `<div style="font-size: 24px; color: ${colors[index % colors.length]};">→</div>`,
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    })
+                }),
+                L.marker(route.points[threeQuarterPoint], {
+                    icon: L.divIcon({
+                        className: 'direction-marker',
+                        html: `<div style="font-size: 24px; color: ${colors[index % colors.length]};">→</div>`,
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    })
+                })
+            ];
+            
+            directionMarkers.forEach(marker => marker.addTo(map));
+            
+            // Add to route layers
+            routeLayers.push(routeLayer);
+            routeLayers = routeLayers.concat(directionMarkers);
+            
+            // Add distance markers
+            const distanceMarkers = addDistanceMarkers(route, colors[index % colors.length]);
+            routeLayers = routeLayers.concat(distanceMarkers);
+            
+            // Fit map to show the entire route
+            map.fitBounds(routeLayer.getBounds(), { padding: [50, 50] });
+        }
+        
+        function addDistanceMarkers(route, color) {
+            const markers = [];
+            let totalDistance = 0;
+            let lastMarkerPoint = null;
+            
+            // Calculate total distance of the route
+            for (let i = 1; i < route.points.length; i++) {
+                const point1 = L.latLng(route.points[i-1]);
+                const point2 = L.latLng(route.points[i]);
+                totalDistance += point1.distanceTo(point2);
+            }
+            
+            // Place markers every kilometer
+            let cumulativeDistance = 0;
+            for (let i = 1; i < route.points.length; i++) {
+                const point1 = L.latLng(route.points[i-1]);
+                const point2 = L.latLng(route.points[i]);
+                const segmentDistance = point1.distanceTo(point2);
+                
+                cumulativeDistance += segmentDistance;
+                
+                // Check if we've passed another kilometer mark
+                if (Math.floor(cumulativeDistance / 1000) > Math.floor((cumulativeDistance - segmentDistance) / 1000)) {
+                    // Calculate exact position of the kilometer mark
+                    const kmMark = Math.floor(cumulativeDistance / 1000);
+                    
+                    if (kmMark > 0 && !lastMarkerPoint) {
+                        const marker = L.marker(point2, {
+                            icon: L.divIcon({
+                                className: 'km-marker',
+                                html: `<div style="background-color: ${color}; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px;">${kmMark}</div>`,
+                                iconSize: [24, 24],
+                                iconAnchor: [12, 12]
+                            })
+                        }).addTo(map);
+                        
+                        markers.push(marker);
+                        lastMarkerPoint = point2;
+                    }
+                }
+            }
+            
+            return markers;
+        }
+        
+        function clearRoutes() {
+            // Remove all route layers
+            routeLayers.forEach(layer => map.removeLayer(layer));
+            routeLayers = [];
+        }
+        
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Utility function for debouncing
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        }
+    </script>
 </body>
-</html></html>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walk Loop</title>
+    <script type="module" src="./map.js"></script>
+
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./customstyle.css" rel="stylesheet">
+    <link rel="icon" href="./images/favicon.ico" type="image/x-icon">
+</head>
+
+<body onload="initMap()">
+    <header class="bg-primary text-white text-center py-3">
+        <h1>Walk Loop 2248</h1>
+    </header>
+    <div class="form-container">
+        <label for="origin">Origin (Address or Place):</label>
+        <input type="text" id="origin" placeholder="Enter origin">
+        <br>
+        <label for="destination">Destination (Address or Place):</label>
+        <input type="text" id="destination" placeholder="Enter destination">
+        <br>
+        <button onclick="calculateRoute()">Generate Walk</button>
+      </div>
+    
+      <div id="map"></div>
+      <div id="place-autocomplete-card">
+        <input id="place-autocomplete-input" type="text" placeholder="Search for places">
+      </div>
+
+    <!-- fetch latest commit time -->
+</div>
+    <div class="container mt-5">
+        <h2>Latest Commit Time</h2>
+        <p id="commitTime">Fetching...</p>
+    <script href="./fetch_time.js"></script>
+    </div>
+    
+
+
+    <footer class="bg-primary text-white text-center py-3 mt-5">
+        <p>Version: <span id="version"></span></p>
+        <script>
+            document.getElementById('version').textContent = new Date().toLocaleString();
+        </script>
+          
+        <p>&copy; 2025 Walk Loop</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+</body>
+</html></html>
