@@ -212,7 +212,7 @@ const WalkingRoutePlanner = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="bg-blue-600 text-white p-4">
-        <h1 className="text-2xl font-bold">Circular Walking Route Planner</h1>
+        <h1 className="text-2xl font-bold">Circular Walking Route Planner - this is walking-route-planner.tsx</h1>
       </header>
       
       <main className="flex flex-col md:flex-row flex-1">
