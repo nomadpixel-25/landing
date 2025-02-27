@@ -75,7 +75,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to My Website</h1>
+        <h1>Welcome to My Website's readme</h1>
         <p>This is a simple landing page hosted on GitHub Pages.</p>
         <a href="./walkloop/walk-loop-react" target="_blank">Visit my WalkLoop</a><p></p>
         <a href="./chores/chore-management-app/public/index.html" target="_blank">Visit my Chores app</a>
