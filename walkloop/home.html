@@ -22,7 +22,7 @@ const WalkingRoutePlanner = () => {
       // Create a script element
       const script = document.createElement('script');
       // The actual API key would be fetched from an environment variable or backend
-      script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_PLACEHOLDER&libraries=places`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=places`;
       script.async = true;
       script.defer = true;
       
